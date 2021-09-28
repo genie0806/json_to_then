@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
+import 'package:network_sample/model/todo.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key key}) : super(key: key);
 
@@ -16,7 +18,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    fetch();
+
+    fetch().then((todo) {
+      setState(() {
+        _result = todo.title;
+      });
+    });
   }
 
   @override
@@ -42,24 +49,22 @@ class _HomePageState extends State<HomePage> {
               child: Text('가져오기'),
             ),
           ),
-          Text(_result)
+          Text('$_result'),
         ],
       ),
     );
   }
 
-  void fetch() {
-    http.get('https://jsonplaceholder.typicode.com/todos/1').then((response) {
-      print(response.statusCode);
-      print(response.body);
+  Future<Todo> fetch() async {
+    final response =
+        await http.get('https://jsonplaceholder.typicode.com/todos/1');
+    print(response.statusCode);
+    print(response.body);
 
-      Map<String, dynamic> jsonResponse = convert.jsonDecode(response.body);
-      String title = jsonResponse['title'];
-      print(title);
+    Map<String, dynamic> jsonResponse = convert.jsonDecode(response.body);
+    //String title = jsonResponse['title'];
 
-      setState(() {
-        _result = title;
-      });
-    });
+    Todo todo = Todo.fromJson(jsonResponse);
+    return todo;
   }
 }
